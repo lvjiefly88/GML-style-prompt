@@ -1,0 +1,2396 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GML Prompt 工程台</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #202421;
+      --muted: #66706a;
+      --paper: #f4f6f2;
+      --surface: #ffffff;
+      --surface-2: #e9efe8;
+      --line: #d7dfd7;
+      --teal: #0f766e;
+      --teal-dark: #0b514d;
+      --coral: #b9543f;
+      --gold: #947122;
+      --blue: #315f8f;
+      --shadow: 0 18px 42px rgba(31, 42, 35, 0.1);
+      --radius: 8px;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      --sans: Inter, "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: var(--sans);
+      background:
+        linear-gradient(90deg, rgba(15, 118, 110, 0.055) 1px, transparent 1px),
+        linear-gradient(rgba(49, 95, 143, 0.045) 1px, transparent 1px),
+        var(--paper);
+      background-size: 38px 38px;
+      letter-spacing: 0;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .app {
+      width: min(1480px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 36px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 20px;
+      align-items: end;
+      padding: 18px 0 22px;
+      border-bottom: 1px solid rgba(24, 25, 31, 0.16);
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--teal-dark);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(32px, 5vw, 58px);
+      line-height: 0.94;
+      max-width: 780px;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 12px 0 0;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.65;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .header-links {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .header-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 0 10px;
+      border: 1px solid rgba(32, 36, 33, 0.14);
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.7);
+      color: var(--teal-dark);
+      font-size: 12px;
+      font-weight: 760;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .header-link:hover {
+      border-color: rgba(15, 118, 110, 0.42);
+      background: #fff;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(390px, 0.95fr);
+      gap: 22px;
+      padding-top: 22px;
+      align-items: start;
+    }
+
+    .panel {
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: clip;
+    }
+
+    .panel + .panel {
+      margin-top: 16px;
+    }
+
+    .panel-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: start;
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid rgba(32, 36, 33, 0.1);
+      background: rgba(247, 250, 246, 0.72);
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .panel-note {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .panel-body {
+      padding: 18px;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .field-grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    label,
+    .label {
+      color: #343740;
+      font-size: 13px;
+      font-weight: 750;
+      line-height: 1.2;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      min-width: 0;
+      border: 1px solid rgba(24, 25, 31, 0.19);
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.86);
+      color: var(--ink);
+      outline: none;
+      transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+
+    input,
+    select {
+      height: 42px;
+      padding: 0 11px;
+    }
+
+    textarea {
+      min-height: 84px;
+      resize: vertical;
+      padding: 10px 11px;
+      line-height: 1.5;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
+      background: #fff;
+    }
+
+    .type-grid,
+    .style-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .choice {
+      position: relative;
+      min-height: 78px;
+      padding: 12px;
+      text-align: left;
+      border: 1px solid rgba(24, 25, 31, 0.15);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.76);
+      color: var(--ink);
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+
+    .choice:hover {
+      transform: translateY(-1px);
+      border-color: rgba(15, 118, 110, 0.5);
+      box-shadow: 0 10px 22px rgba(24, 25, 31, 0.08);
+    }
+
+    .choice.active {
+      border-color: var(--teal);
+      background: linear-gradient(135deg, rgba(15, 118, 110, 0.13), rgba(49, 95, 143, 0.1)), #fff;
+      box-shadow: inset 0 0 0 1px rgba(15, 118, 110, 0.25);
+    }
+
+    .choice strong {
+      display: block;
+      font-size: 14px;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+
+    .choice span {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .style-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .style-swatch {
+      display: flex;
+      gap: 4px;
+      margin-top: 10px;
+    }
+
+    .style-swatch i {
+      display: block;
+      width: 24px;
+      height: 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(24, 25, 31, 0.12);
+    }
+
+    .checks {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px;
+    }
+
+    .check {
+      display: grid;
+      grid-template-columns: 20px minmax(0, 1fr);
+      gap: 9px;
+      align-items: start;
+      padding: 10px;
+      border: 1px solid rgba(24, 25, 31, 0.12);
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.68);
+      min-height: 46px;
+    }
+
+    .check input {
+      width: 17px;
+      height: 17px;
+      margin: 1px 0 0;
+      accent-color: var(--teal);
+    }
+
+    .check span {
+      min-width: 0;
+      color: #30333b;
+      font-size: 13px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .check strong {
+      display: block;
+      color: #252832;
+      font-size: 13px;
+      line-height: 1.3;
+    }
+
+    .check em {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      font-style: normal;
+      line-height: 1.35;
+    }
+
+    .section-tools {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 0 13px;
+      border: 1px solid rgba(24, 25, 31, 0.18);
+      border-radius: 7px;
+      background: #ffffff;
+      color: var(--ink);
+      font-weight: 780;
+      font-size: 13px;
+      text-decoration: none;
+      transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease, border-color 150ms ease;
+      white-space: nowrap;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(24, 25, 31, 0.09);
+      border-color: rgba(15, 118, 110, 0.42);
+    }
+
+    .button.primary {
+      border-color: var(--teal-dark);
+      background: var(--teal);
+      color: white;
+    }
+
+    .button.danger {
+      border-color: rgba(200, 76, 49, 0.35);
+      color: #8e2f1d;
+    }
+
+    .button.small {
+      min-height: 32px;
+      padding: 0 10px;
+      font-size: 12px;
+    }
+
+    .output-panel {
+      position: sticky;
+      top: 16px;
+    }
+
+    .prompt-output {
+      width: 100%;
+      min-height: 640px;
+      max-height: calc(100vh - 254px);
+      border: 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 0;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        #141a1d;
+      background-size: 100% 28px;
+      color: #f4f1e8;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.62;
+      padding: 18px;
+      resize: vertical;
+      box-shadow: none;
+    }
+
+    .prompt-output:focus {
+      border-color: transparent;
+      box-shadow: inset 0 0 0 3px rgba(15, 118, 110, 0.35);
+      background-color: #121318;
+    }
+
+    .output-head {
+      background: #1d2528;
+      color: #f4f1e8;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .output-head .panel-title,
+    .output-head .panel-note {
+      color: inherit;
+    }
+
+    .output-head .panel-note {
+      color: rgba(244, 241, 232, 0.68);
+    }
+
+    .meter {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(244, 241, 232, 0.76);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .meter-bar {
+      width: 84px;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.16);
+      overflow: hidden;
+    }
+
+    .meter-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--teal), var(--gold), var(--coral));
+      transition: width 180ms ease;
+    }
+
+    .pattern-list {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .pattern-card {
+      padding: 12px;
+      border: 1px solid rgba(24, 25, 31, 0.12);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .pattern-card strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .pattern-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .site-footer {
+      margin-top: 22px;
+      padding: 18px 0 0;
+      border-top: 1px solid rgba(32, 36, 33, 0.14);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .footer-inner {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .footer-title {
+      margin: 0;
+      color: var(--ink);
+      font-weight: 850;
+    }
+
+    .footer-note {
+      margin: 5px 0 0;
+      line-height: 1.5;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .footer-links a {
+      color: var(--teal-dark);
+      font-weight: 760;
+      text-decoration: none;
+    }
+
+    .footer-links a:hover {
+      text-decoration: underline;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 20;
+      min-width: 210px;
+      padding: 12px 14px;
+      border: 1px solid rgba(24, 25, 31, 0.16);
+      border-radius: var(--radius);
+      background: #17191f;
+      color: #fff7e8;
+      box-shadow: 0 18px 38px rgba(0, 0, 0, 0.22);
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: opacity 180ms ease, transform 180ms ease;
+      font-size: 13px;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .toast button {
+      margin-left: 12px;
+      padding: 5px 9px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.12);
+      color: inherit;
+      font-weight: 800;
+    }
+
+    @media (max-width: 1180px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .output-panel {
+        position: static;
+      }
+
+      .prompt-output {
+        max-height: none;
+        min-height: 520px;
+      }
+    }
+
+    @media (max-width: 820px) {
+      .app {
+        width: min(100vw - 20px, 720px);
+        padding-top: 12px;
+      }
+
+      .topbar {
+        grid-template-columns: 1fr;
+      }
+
+      .top-actions {
+        justify-content: flex-start;
+      }
+
+      .header-links {
+        justify-content: flex-start;
+      }
+
+      .type-grid,
+      .style-grid,
+      .field-grid,
+      .field-grid.three,
+      .checks,
+      .pattern-list {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 38px;
+      }
+
+      .footer-inner {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-links {
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">GML-style page prompt lab</p>
+        <h1>Vincenox的页面生成器</h1>
+        <p class="subtitle">语言的边界就是世界的边界：0 token拼配式页面 Prompt 生成工具</p>
+      </div>
+      <div>
+        <nav class="header-links" aria-label="站点链接">
+          <a class="header-link" href="#">回到首页</a>
+          <a class="header-link" href="mailto:lvjiefly88@gmail.com">lvjiefly88@gmail.com</a>
+          <a class="header-link" href="https://github.com/lvjiefly88" target="_blank" rel="noopener">GitHub</a>
+        </nav>
+        <div class="top-actions">
+          <button class="button primary" id="generateTop" type="button">生成 Prompt</button>
+          <button class="button" id="copyTop" type="button">复制结果</button>
+        </div>
+      </div>
+    </header>
+
+    <section class="panel" aria-labelledby="patterns-title">
+      <div class="panel-head">
+        <div>
+          <h2 class="panel-title" id="patterns-title">从样例里抽出的 6 条规律</h2>
+          <p class="panel-note">这些规律已经被写进下面的生成逻辑。</p>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="pattern-list">
+          <article class="pattern-card">
+            <strong>1. 先定场景与受众</strong>
+            <p>不是“做个漂亮页面”，而是明确品牌、工具、课程、游戏、3D 体验等任务边界。</p>
+          </article>
+          <article class="pattern-card">
+            <strong>2. 用可见素材说话</strong>
+            <p>指定图片内容、摄影方式、构图逻辑、纹理和材质，让模型知道画面从哪里来。</p>
+          </article>
+          <article class="pattern-card">
+            <strong>3. 色彩字体服务气质</strong>
+            <p>主色、强调色、背景、标题和正文风格互相支持，避免孤立的“高级感”形容词。</p>
+          </article>
+          <article class="pattern-card">
+            <strong>4. 结构按用户任务组织</strong>
+            <p>案例会把页面拆成 Hero、内容库、人物、工具、表单、结果页等清晰模块。</p>
+          </article>
+          <article class="pattern-card">
+            <strong>5. 交互写触发与反馈</strong>
+            <p>优秀提示词写清 hover、scroll、drag、click 后发生什么，以及动画速度和反馈质感。</p>
+          </article>
+          <article class="pattern-card">
+            <strong>6. 最后收束整体气质</strong>
+            <p>用一句 Overall Vibe 校准方向，让视觉、结构和交互都服务同一个体验目标。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <div class="layout">
+      <form class="controls" id="promptForm">
+        <section class="panel" aria-labelledby="type-title">
+          <div class="panel-head">
+            <div>
+              <h2 class="panel-title" id="type-title">1. 网页类型</h2>
+              <p class="panel-note">类型决定页面结构和交互优先级（选准类型可以自动带出更贴合任务的模块和反馈）。</p>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="type-grid" id="typeGrid"></div>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="style-title">
+          <div class="panel-head">
+            <div>
+              <h2 class="panel-title" id="style-title">2. 风格方向</h2>
+              <p class="panel-note">点击风格卡片会立即应用（颜色和用途会在视觉策略里分开填写，避免把“什么颜色”和“用在哪里”混在一起）。</p>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="style-grid" id="styleGrid"></div>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="brief-title">
+          <div class="panel-head">
+            <div>
+              <h2 class="panel-title" id="brief-title">3. 项目 Briefing</h2>
+              <p class="panel-note">越具体，生成的 prompt 越不像模板（这些字段负责告诉模型“为谁做、做什么、为什么做”）。</p>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="field-grid">
+              <div class="field">
+                <label for="projectName">项目名称（让 Prompt 有明确主体，避免生成泛泛模板）</label>
+                <input id="projectName" name="projectName" placeholder="例如：LumaLab / BeatCraft / 远山瑜伽">
+              </div>
+              <div class="field">
+                <label for="audience">目标用户（决定信息密度、文案口吻和功能优先级）</label>
+                <input id="audience" name="audience" placeholder="例如：独立开发者、精品咖啡店主、初学围棋玩家">
+              </div>
+              <div class="field">
+                <label for="mainGoal">核心目标（让页面围绕一个主要行动组织，而不是只堆视觉）</label>
+                <input id="mainGoal" name="mainGoal" placeholder="例如：预约体验课、阅读教程、完成一局小游戏">
+              </div>
+              <div class="field">
+                <label for="contentFocus">核心内容 / 产品（决定首屏该展示什么真实主体）</label>
+                <input id="contentFocus" name="contentFocus" placeholder="例如：AI 评测文章、3D 手表定制、微积分可视化">
+              </div>
+            </div>
+            <div class="field" style="margin-top: 14px;">
+              <label for="brandTwist">独特设定（强化记忆点，让结果不只是常规页面）</label>
+              <textarea id="brandTwist" name="brandTwist" placeholder="例如：所有文章都像命令行输出；用户可以拖动曲线顶点看到实时公式；品牌色会同步改变整个 3D 空间。"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="visual-title">
+          <div class="panel-head">
+            <div>
+              <h2 class="panel-title" id="visual-title">4. 视觉策略</h2>
+              <p class="panel-note">用户只看中文选项（每个选项会自动匹配英文提示词，用于生成高质量 Prompt）。</p>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="field-grid">
+              <div class="field">
+                <label for="imagery">视觉素材（决定画面里出现什么，避免空泛装饰）</label>
+                <select id="imagery" name="imagery"></select>
+              </div>
+              <div class="field">
+                <label for="mediaStyle">媒介风格（决定照片、插画或 3D 的质感，保证风格一致）</label>
+                <select id="mediaStyle" name="mediaStyle"></select>
+              </div>
+              <div class="field">
+                <label for="composition">构图方式（决定首屏层级，让用户一眼看懂重点）</label>
+                <select id="composition" name="composition"></select>
+              </div>
+              <div class="field">
+                <label for="background">背景 / 纹理（支撑可读性和质感，不抢主体）</label>
+                <select id="background" name="background"></select>
+              </div>
+            </div>
+            <div class="field-grid" style="margin-top: 14px;">
+              <div class="field">
+                <label for="colorTheme">默认配色方案（快速填充颜色和用途，便于稳定出图）</label>
+                <select id="colorTheme" name="colorTheme"></select>
+              </div>
+              <div class="field">
+                <label for="primaryColors">主色颜色（只写颜色本身，建立基础识别）</label>
+                <input id="primaryColors" name="primaryColors">
+              </div>
+              <div class="field">
+                <label for="primaryColorUse">主色用途（说明主色用在哪些大面积区域，避免颜色失控）</label>
+                <input id="primaryColorUse" name="primaryColorUse">
+              </div>
+              <div class="field">
+                <label for="accentColors">强调色颜色（只写颜色本身，用于制造层级和反馈）</label>
+                <input id="accentColors" name="accentColors">
+              </div>
+              <div class="field">
+                <label for="accentColorUse">强调色用途（说明强调色用于 CTA、状态还是关键反馈）</label>
+                <input id="accentColorUse" name="accentColorUse">
+              </div>
+              <div class="field">
+                <label for="backgroundColors">背景颜色（只写背景色本身，和背景纹理分开）</label>
+                <input id="backgroundColors" name="backgroundColors">
+              </div>
+              <div class="field">
+                <label for="backgroundUse">背景用途（说明背景如何服务阅读、沉浸或空间感）</label>
+                <input id="backgroundUse" name="backgroundUse">
+              </div>
+              <div class="field">
+                <label for="typography">字体策略（决定标题性格和正文可读性）</label>
+                <select id="typography" name="typography"></select>
+              </div>
+            </div>
+            <div class="field-grid" style="margin-top: 14px;">
+              <div class="field">
+                <label for="layoutDensity">布局密度（决定信息是舒展展示还是高效扫描）</label>
+                <select id="layoutDensity" name="layoutDensity">
+                  <option value="generous margins; one clear idea per scroll viewport">舒展：一屏一个重点（适合情绪、品牌和沉浸感，降低阅读压力）</option>
+                  <option value="balanced editorial rhythm with strong visual anchors">平衡：编辑感节奏（适合内容和作品展示，让图文关系更稳）</option>
+                  <option value="dense but organized information with visible hierarchy">高密度：信息多但层级清楚（适合工具、教程和运营页面，提高扫描效率）</option>
+                  <option value="workspace-like layout with toolbars, panels, and live preview">工具型：工具栏 + 面板 + 实时预览（适合可操作工具，减少来回跳转）</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="vibe">整体气质（最后校准所有视觉、结构和交互方向）</label>
+                <input id="vibe" name="vibe" placeholder="例如：calm, premium, rigorous, playful">
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="structure-title">
+          <div class="panel-head">
+            <div>
+              <h2 class="panel-title" id="structure-title">5. 页面 / 游戏结构</h2>
+              <p class="panel-note">默认结构来自当前类型（每项都用中文说明作用，勾选后会写入对应英文 Prompt）。</p>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="section-tools">
+              <button class="button small" type="button" id="checkAllSections">全选结构</button>
+              <button class="button small" type="button" id="clearSections">清空结构</button>
+            </div>
+            <div class="checks" id="sectionChecks"></div>
+            <div class="field" style="margin-top: 14px;">
+              <label for="customSections">自定义结构（补充业务特有模块，避免默认结构漏掉关键流程）</label>
+              <textarea id="customSections" name="customSections" placeholder="每行一个，例如：Pricing: three transparent plans with a comparison row"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="interaction-title">
+          <div class="panel-head">
+            <div>
+              <h2 class="panel-title" id="interaction-title">6. 交互细节</h2>
+              <p class="panel-note">写清触发、动作、反馈和节奏（每项都会转成英文交互要求，减少“看起来会动但不好用”的问题）。</p>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="field-grid" style="margin-bottom: 14px;">
+              <div class="field">
+                <label for="motionLevel">动效强度（控制反馈力度，避免过弱或过度干扰）</label>
+                <select id="motionLevel" name="motionLevel">
+                  <option value="restrained, polished motion with 200-600ms easing">克制精致（适合品牌、作品集和内容站，保持高级感）</option>
+                  <option value="noticeable scroll and hover choreography with tactile feedback">明显但不喧宾夺主（适合多数工具和产品页，提升可感知反馈）</option>
+                  <option value="expressive, game-like motion with particles, sound toggles, and completion feedback">游戏化强反馈（适合小游戏和训练工具，增强成就感）</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="implementationTarget">交付形式（告诉模型按什么技术形态组织代码和状态）</label>
+                <select id="implementationTarget" name="implementationTarget">
+                  <option value="a single self-contained HTML file with embedded CSS and JavaScript">单 HTML + 内嵌 CSS/JS（适合快速交付和直接运行）</option>
+                  <option value="a production-ready React app with componentized state and responsive CSS">React 应用（适合复杂状态、组件复用和后续扩展）</option>
+                  <option value="a Three.js-powered interactive page with responsive controls">Three.js 互动页（适合 3D 模型、空间和材质展示）</option>
+                  <option value="a playable browser game with clear states, scoring, and restart flow">可玩的浏览器游戏（适合关卡、分数、结算和重开流程）</option>
+                </select>
+              </div>
+            </div>
+            <div class="section-tools">
+              <button class="button small" type="button" id="checkAllInteractions">全选交互</button>
+              <button class="button small" type="button" id="clearInteractions">清空交互</button>
+            </div>
+            <div class="checks" id="interactionChecks"></div>
+            <div class="field" style="margin-top: 14px;">
+              <label for="customInteractions">自定义交互（补充独特操作和反馈，强化体验记忆点）</label>
+              <textarea id="customInteractions" name="customInteractions" placeholder="每行一个，例如：When the user drags the price slider, cards re-sort in real time with a 300ms shuffle."></textarea>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="quality-title">
+          <div class="panel-head">
+            <div>
+              <h2 class="panel-title" id="quality-title">7. 质量约束</h2>
+              <p class="panel-note">把“好看”变成可验证要求（这些约束能减少空泛页面、重叠和不可用状态）。</p>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="checks" id="qualityChecks">
+              <label class="check"><input type="checkbox" value="Make the first viewport immediately communicate the product, place, topic, or gameplay; avoid a generic marketing-only hero." checked><span>首屏直接呈现主体（让用户第一眼知道这是产品、地点、主题还是玩法）</span></label>
+              <label class="check"><input type="checkbox" value="Use real-feeling visual assets or generated bitmap-like scenes where useful; avoid decorative abstract filler." checked><span>使用有内容的视觉素材（让画面有可检查的真实对象，不用抽象装饰凑数）</span></label>
+              <label class="check"><input type="checkbox" value="Ensure mobile and desktop layouts are responsive, with no text overlap and stable dimensions for fixed-format controls." checked><span>移动端和桌面端不重叠（保证文字、按钮和固定控件不会挤压变形）</span></label>
+              <label class="check"><input type="checkbox" value="Include accessible labels, visible focus states, keyboard-friendly controls, and reduced-motion consideration where motion is heavy." checked><span>包含可访问性、焦点态和降动效（让键盘用户和低动效用户也能顺畅使用）</span></label>
+              <label class="check"><input type="checkbox" value="Keep the interface feature-complete for the selected type, including empty/loading/success/error or result states when relevant."><span>补齐空态、加载、成功、错误或结果状态（让工具和游戏更像完整产品）</span></label>
+              <label class="check"><input type="checkbox" value="Use precise microcopy and domain-specific labels instead of generic placeholder text."><span>文案和标签贴合领域（提升专业感，避免通用占位文案）</span></label>
+            </div>
+            <div class="field-grid" style="margin-top: 14px;">
+              <div class="field">
+                <label for="outputLanguage">Prompt 语言（选择最终交付给网页生成模型的语言）</label>
+                <select id="outputLanguage" name="outputLanguage">
+                  <option value="en">英文（通常更贴近 GML 样例格式，适合直接生成网页）</option>
+                  <option value="zh">中文（适合先自己检查需求，再二次翻译或改写）</option>
+                  <option value="both">中英双语（适合中文审阅和英文执行同时保留）</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="extraNotes">额外要求（补充技术限制、数据来源或必须避免的点）</label>
+                <input id="extraNotes" name="extraNotes" placeholder="例如：不要外链依赖、保留真实数据入口、暗色模式优先">
+              </div>
+            </div>
+          </div>
+        </section>
+      </form>
+
+      <aside class="panel output-panel" aria-labelledby="output-title">
+        <div class="panel-head output-head">
+          <div>
+            <h2 class="panel-title" id="output-title">生成结果</h2>
+            <p class="panel-note">可以继续手动编辑后复制。</p>
+          </div>
+          <div class="meter" aria-label="Prompt 完整度">
+            <span id="scoreText">0%</span>
+            <span class="meter-bar"><span class="meter-fill" id="scoreFill"></span></span>
+          </div>
+        </div>
+        <textarea class="prompt-output" id="promptOutput" spellcheck="false"></textarea>
+        <div class="panel-body" style="background: #1d2528; border-top: 1px solid rgba(255,255,255,0.08);">
+          <div class="top-actions" style="justify-content: flex-start;">
+            <button class="button primary" id="generateBottom" type="button">重新生成</button>
+            <button class="button" id="copyBottom" type="button">复制</button>
+            <button class="button" id="downloadPrompt" type="button">下载 .txt</button>
+            <button class="button danger" id="resetForm" type="button">重置</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div>
+          <p class="footer-title">GML-style page prompt lab</p>
+          <p class="footer-note">Vincenox的页面生成器用于把页面想法拆成类型、风格、视觉策略、结构和交互，再拼配成可执行的页面 Prompt。</p>
+        </div>
+        <nav class="footer-links" aria-label="页脚链接">
+          <a href="#">回到首页</a>
+          <a href="mailto:lvjiefly88@gmail.com">联系作者</a>
+          <a href="https://github.com/lvjiefly88" target="_blank" rel="noopener">GitHub</a>
+          <span>© 2026 Vincenox</span>
+        </nav>
+      </div>
+    </footer>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const siteTypes = {
+      brand: {
+        label: "品牌官网",
+        hint: "品牌态度、产品价值、转化",
+        verb: "Design a premium brand official website",
+        zhVerb: "设计一个高完成度品牌官网",
+        structureLabel: "Page Structure",
+        sections: [
+          "Hero Section: product or brand attitude with a strong first-viewport visual and primary CTA",
+          "Value Proposition: three concrete reasons to believe, each with proof or visual detail",
+          "Product / Service System: organized by user goals rather than internal categories",
+          "Proof: customer stories, metrics, press, certifications, or before-after evidence",
+          "Team / Craft: people, process, materials, or behind-the-scenes credibility",
+          "Conversion: booking, inquiry, purchase, or newsletter capture with low-friction form"
+        ],
+        interactions: [
+          "Hero media responds to scroll with subtle parallax while the primary CTA remains visible.",
+          "Section reveals use staggered fade and slight upward translate with 400-600ms easing.",
+          "Proof cards expand on hover to reveal concrete details, metrics, or short quotes.",
+          "CTA becomes a compact sticky bar after the hero scrolls out of view.",
+          "Brand accent color appears at section breaks through restrained scroll-driven transitions."
+        ]
+      },
+      blog: {
+        label: "博客 / 内容站",
+        hint: "文章、系列、阅读体验",
+        verb: "Design a content-rich blog or publication website",
+        zhVerb: "设计一个内容丰富的博客或出版物网站",
+        structureLabel: "Page Structure",
+        sections: [
+          "Hero Section: featured series or latest flagship article with clear topic promise",
+          "Content Library: filterable grid organized by topic, format, and difficulty",
+          "Series Page: chapter list, prerequisite map, progress percentage, and next chapter CTA",
+          "Article Page: readable prose, sticky table of contents, related notes, and code/media embeds",
+          "Discussion / Notes: compact comment or annotation area attached to each article",
+          "Newsletter: specific editorial promise and examples of what subscribers receive"
+        ],
+        interactions: [
+          "Sticky table of contents highlights the active heading while scrolling.",
+          "Reading progress bar fills across the top edge of the page.",
+          "Code blocks include copy buttons with a brief success flash.",
+          "Filters rearrange article cards with a 250-350ms layout shuffle.",
+          "Series checklist auto-checks a chapter after the reader reaches 80% scroll depth."
+        ]
+      },
+      game: {
+        label: "网页游戏",
+        hint: "可玩状态、反馈、结算",
+        verb: "Build a polished browser mini game",
+        zhVerb: "构建一个完整可玩的浏览器小游戏",
+        structureLabel: "Game Structure",
+        sections: [
+          "Start Screen: title, compact rules, difficulty or mode selector, and a single Play action",
+          "Level Select: visible locked/unlocked states, best score, and recommended next level",
+          "Game Board: main interactive area with stable dimensions and clear legal actions",
+          "HUD: score, timer, combo, lives, status, and pause or audio controls",
+          "Feedback Layer: hit, miss, match, damage, win, and failure states with distinct motion",
+          "Results Screen: score breakdown, rating, replay, next level, and shareable summary"
+        ],
+        interactions: [
+          "Core actions respond immediately with tactile motion, color feedback, and optional sound toggles.",
+          "Correct moves trigger a satisfying pop, chime, or particle burst; misses shake and recover quickly.",
+          "Streaks escalate visual feedback without blocking gameplay.",
+          "Completion shows confetti or score animation, then reveals clear replay and next actions.",
+          "Reduced-motion mode preserves gameplay clarity while lowering particle and camera movement."
+        ]
+      },
+      threeD: {
+        label: "3D / 定制器",
+        hint: "材质、相机、实时预览",
+        verb: "Build an interactive 3D web experience",
+        zhVerb: "构建一个交互式 3D 网页体验",
+        structureLabel: "3D Experience Structure",
+        sections: [
+          "Hero Scene: full-bleed or dominant 3D object/space visible immediately in the first viewport",
+          "Camera Controls: drag-orbit, smooth reset, zoom limits, and guided focus points",
+          "Customizer Panel: materials, colors, variants, lighting, labels, and saved presets",
+          "Detail Inspection: hover or click hotspots with microcopy and visual emphasis",
+          "Comparison / Estimate: live price, capacity, dimensions, or configuration summary",
+          "Export / Share: screenshot, PDF, model swap, or configuration link with animated confirmation"
+        ],
+        interactions: [
+          "Idle auto-orbit pauses on user interaction and resumes after a short delay.",
+          "Material and color changes update live with PBR-like highlights and smooth transitions.",
+          "Hotspots glow on hover and anchor labels to the relevant model part.",
+          "Camera swings smoothly between overview, detail, and top-down modes.",
+          "Export builds the final sheet or preview in a visible step-by-step animation."
+        ]
+      },
+      education: {
+        label: "教育可视化",
+        hint: "概念、证明、练习",
+        verb: "Design an interactive educational visualization site",
+        zhVerb: "设计一个交互式教育可视化网站",
+        structureLabel: "Learning Structure",
+        sections: [
+          "Hero Section: one memorable live visualization that demonstrates the central concept",
+          "Concept Map: prerequisite relationships and short explanations for each node",
+          "Interactive Lab: sliders, draggable points, live readouts, and immediate visual response",
+          "Guided Explanation: step-by-step derivation or walkthrough revealed line by line",
+          "Practice: problems with hints, feedback, and solution reveal controls",
+          "Reference: formulas, definitions, glossary, or downloadable notes"
+        ],
+        interactions: [
+          "Dragging visual handles updates formulas, labels, and charts in real time.",
+          "Sliders animate smoothly and show exact numeric readouts beside the affected object.",
+          "Formula terms reveal compact definition popovers on hover or focus.",
+          "Step-through solutions advance by button and keyboard, with the current line emphasized.",
+          "Quiz feedback uses color, short explanation, and a retry path rather than only right/wrong."
+        ]
+      },
+      portfolio: {
+        label: "作品集",
+        hint: "案例、方法、审美主张",
+        verb: "Design an art-directed portfolio website",
+        zhVerb: "设计一个有明确艺术指导的作品集网站",
+        structureLabel: "Portfolio Structure",
+        sections: [
+          "Hero Section: oversized name or practice statement with a distinctive typographic treatment",
+          "Selected Projects: case-study spreads with role, context, constraints, and visual proof",
+          "Process: sketches, iterations, systems, decisions, and measurable outcome",
+          "Archive: compact index of older work with filters and project metadata",
+          "Talks / Writing: embedded media, publications, or downloadable references",
+          "Contact: direct commission or collaboration path with location and availability"
+        ],
+        interactions: [
+          "Hero type animates on load with kinetic typography tied to the portfolio identity.",
+          "Project spreads cross-fade or slide with a controlled editorial rhythm.",
+          "Image sets support scrub, drag, or before-after comparison without layout jumps.",
+          "Color swatches or design tokens can be scrubbed like a film strip.",
+          "Cursor or hover detail is subtle and tied to the portfolio's production method."
+        ]
+      },
+      ecommerce: {
+        label: "电商 / 产品页",
+        hint: "选择、比较、购买",
+        verb: "Design a conversion-focused product commerce page",
+        zhVerb: "设计一个转化导向的产品电商页面",
+        structureLabel: "Commerce Structure",
+        sections: [
+          "Hero Product View: inspectable product, clear offer, price, and primary purchase action",
+          "Variant Selector: color, size, material, bundle, or configuration with live preview",
+          "Benefits: specific use cases, sensory details, proof, and comparison against alternatives",
+          "Reviews: filterable real reviews with photos, tags, and credibility signals",
+          "Specifications: dimensions, materials, compatibility, care, or technical data",
+          "Checkout Assist: sticky buy bar, shipping estimate, returns, and support answers"
+        ],
+        interactions: [
+          "Variant changes update product imagery, price, availability, and specs instantly.",
+          "Product media supports zoom, drag, gallery thumbnails, or 3D inspection.",
+          "Reviews filter by use case and animate into a new arrangement.",
+          "Sticky purchase bar appears after the main buy box scrolls out of view.",
+          "Add-to-cart triggers a short confirmation with next-step choices."
+        ]
+      },
+      tool: {
+        label: "工具 / SaaS",
+        hint: "输入、处理、结果",
+        verb: "Build a practical interactive web tool",
+        zhVerb: "构建一个实用的交互式网页工具",
+        structureLabel: "Tool Structure",
+        sections: [
+          "Workspace: primary tool surface visible immediately with inputs and live preview",
+          "Mode Tabs: distinct workflows or templates with clear selected state",
+          "Control Panel: sliders, toggles, segmented controls, menus, and validation states",
+          "Output Panel: live result, copy/export actions, and clear empty state",
+          "History / Presets: saved examples, recent outputs, and reset or duplicate controls",
+          "Help Drawer: concise domain-specific guidance attached to the relevant control"
+        ],
+        interactions: [
+          "Inputs update the preview instantly with debounced validation when needed.",
+          "Controls use stable dimensions so labels, values, and hover states do not shift layout.",
+          "Copy, export, and reset actions provide short success or confirmation feedback.",
+          "Mode switches preserve relevant state and animate panels without hiding the main result.",
+          "Error messages are specific and appear next to the control that caused the problem."
+        ]
+      }
+    };
+
+    const stylePacks = {
+      hardcore: {
+        label: "硬核黑橙",
+        hint: "专业、力量、高密度",
+        colorTheme: "graphiteOrange",
+        swatches: ["#050506", "#2d2d30", "#ff6a1a", "#d7d7d7"],
+        imagery: "athletic poses, sweat, equipment texture, close-up material detail, real people in focused action",
+        mediaStyle: "high-contrast black-and-white photography with selective neon accent lighting",
+        composition: "people or product as the main subject, cropped tightly, blurred surroundings, strong diagonal energy",
+        primaryColors: "pure black, dark gray",
+        primaryColorUse: "use primary colors for the main background, large panels, navigation, and high-contrast content areas",
+        accentColors: "neon orange, metallic silver",
+        accentColorUse: "use accent colors for primary CTAs, performance metrics, active states, and short feedback flashes",
+        backgroundColors: "near-black, charcoal, deep graphite",
+        background: "dark textured background with subtle grain and directional light",
+        backgroundUse: "support a strong, intense atmosphere while preserving clear text contrast and content hierarchy",
+        typography: "bold condensed sans headings; clean forceful body text",
+        layoutDensity: "dense but organized information with visible hierarchy",
+        vibe: "professional, intense, motivating, premium, high-performance",
+        interactions: [
+          "Primary CTA pulses softly and snaps into a sticky action bar on scroll.",
+          "Cards flip or expand on hover to reveal credentials, specs, or proof.",
+          "Subtle grain-texture parallax drifts as the page scrolls."
+        ]
+      },
+      calm: {
+        label: "禅意自然",
+        hint: "安静、留白、恢复感",
+        colorTheme: "sageClay",
+        swatches: ["#efe3cf", "#93a889", "#fffaf0", "#bd7359"],
+        imagery: "soft morning light, plants, fabric texture, hands, quiet rooms, slow human rituals",
+        mediaStyle: "warm natural-light photography or soft painterly illustrations with shallow depth of field",
+        composition: "open negative space, diagonal sunbeams, asymmetrical calm, one visual idea per viewport",
+        primaryColors: "warm sand, sage green, off-white",
+        primaryColorUse: "use primary colors for calm page surfaces, section bands, and quiet content containers",
+        accentColors: "terracotta, dusk pink",
+        accentColorUse: "use accent colors sparingly for booking CTAs, selected states, small marks, and warm moments of emphasis",
+        backgroundColors: "off-white, pale sage, warm mist",
+        background: "subtle paper or linen texture",
+        backgroundUse: "create a grounded tactile surface that makes the experience feel warm without lowering readability",
+        typography: "humanist serif headings; airy sans body text with generous line-height",
+        layoutDensity: "generous margins; one clear idea per scroll viewport",
+        vibe: "calm, welcoming, intentional, restorative, grounded",
+        interactions: [
+          "Hero visual subtly expands and contracts on a four-second breathing cycle.",
+          "Headlines fade up softly as they enter the viewport.",
+          "Images use a slow Ken Burns zoom on hover."
+        ]
+      },
+      editorial: {
+        label: "编辑画册",
+        hint: "字体主导、艺术指导",
+        colorTheme: "inkPaperRed",
+        swatches: ["#101010", "#f4f0e8", "#d3342f", "#2c5f8f"],
+        imagery: "project spreads, posters, packaging, close-up details, type specimens, annotated process shots",
+        mediaStyle: "print-monograph style layouts with crisp scans, high contrast, and deliberate cropping",
+        composition: "oversized headlines, grid-based spreads, alternating image and copy dominance",
+        primaryColors: "near-black, warm paper white",
+        primaryColorUse: "use primary colors for type-heavy spreads, editorial section backgrounds, and image framing",
+        accentColors: "printer red, archive blue",
+        accentColorUse: "use accent colors for annotations, project metadata, links, and controlled editorial emphasis",
+        backgroundColors: "warm paper white, soft gray, near-black for contrast blocks",
+        background: "paper grain with occasional registration marks or print texture",
+        backgroundUse: "reinforce the print-monograph feeling while keeping project images and typography crisp",
+        typography: "oversized display serif or grotesque headings; editorial body copy",
+        layoutDensity: "balanced editorial rhythm with strong visual anchors",
+        vibe: "editorial, type-heavy, opinionated, art-directed",
+        interactions: [
+          "Hero name treatment animates with kinetic typography on load.",
+          "Project spreads cross-fade into the next with a slight horizontal slide.",
+          "Specimen or media cards can be dragged, scrubbed, or resized without breaking the grid."
+        ]
+      },
+      cinematic: {
+        label: "红黑影像",
+        hint: "视频感、观点强",
+        colorTheme: "cinemaRedBlue",
+        swatches: ["#050505", "#e21b2d", "#ffffff", "#f8e71c"],
+        imagery: "video thumbnails, behind-the-scenes shots, creator portraits, gear close-ups, cinematic 16:9 frames",
+        mediaStyle: "signature high-contrast lighting with film grain and bold thumbnail composition",
+        composition: "video-first layout, large horizontal media blocks, collapsible written companions",
+        primaryColors: "deep black, signal red, pure white",
+        primaryColorUse: "use primary colors for the cinematic shell, video blocks, headlines, and strong section contrast",
+        accentColors: "neon yellow, electric blue",
+        accentColorUse: "use accent colors for category chips, hover states, active filters, and price or recommendation signals",
+        backgroundColors: "pure black, deep red-black, white contrast surfaces",
+        background: "pure black with subtle film-grain overlay",
+        backgroundUse: "make video thumbnails and creator imagery feel cinematic without burying readable text",
+        typography: "heavy display sans headings; clean grotesque body text",
+        layoutDensity: "dense but organized information with visible hierarchy",
+        vibe: "high-production, opinionated, charismatic, modern",
+        interactions: [
+          "Media thumbnails play silent muted previews on hover.",
+          "Category filters slide cards into a new arrangement with a 300ms shuffle.",
+          "Section breaks use restrained scroll-driven brand color shifts."
+        ]
+      },
+      terminal: {
+        label: "命令行",
+        hint: "黑客、复古、可操作",
+        colorTheme: "terminalGreenAmber",
+        swatches: ["#080d0b", "#79ff9d", "#d9ffe2", "#3b4a42"],
+        imagery: "terminal output, command history, ASCII-like dividers, compact project listings",
+        mediaStyle: "pure interface aesthetic; no decorative photography unless rendered as terminal output",
+        composition: "persistent prompt at the bottom, command output above, readable monospace columns",
+        primaryColors: "near-black, phosphor green",
+        primaryColorUse: "use primary colors for terminal surfaces, prompt text, command output, and active cursor states",
+        accentColors: "muted amber, dim gray",
+        accentColorUse: "use accent colors for warnings, command hints, ghost completions, and secondary metadata",
+        backgroundColors: "black-green, deep terminal black, dark olive",
+        background: "subtle CRT scanline overlay with optional flicker toggle",
+        backgroundUse: "suggest a terminal display texture while keeping commands and output easy to read",
+        typography: "monospaced typography everywhere with a blinking cursor",
+        layoutDensity: "dense but organized information with visible hierarchy",
+        vibe: "hacker, nostalgic, opinionated, playful, functional",
+        interactions: [
+          "Visitors type commands to navigate and receive markdown-rendered output.",
+          "Tab completion shows ghost text and command suggestions.",
+          "Up and down arrows traverse command history with a subtle keypress sound toggle."
+        ]
+      },
+      math: {
+        label: "深色数学",
+        hint: "严谨、图形、实时读数",
+        colorTheme: "navyProof",
+        swatches: ["#15233c", "#fff9ec", "#f2762e", "#2f9f67"],
+        imagery: "curves, tangent lines, grid overlays, vectors, shaded areas, annotated formulas",
+        mediaStyle: "pure mathematical illustration with crisp SVG/canvas-like rendering, no photography",
+        composition: "side-by-side concept and live graph, labels anchored to meaningful points",
+        primaryColors: "navy, paper white",
+        primaryColorUse: "use primary colors for graph surfaces, explanation panels, axes, and long-form reading areas",
+        accentColors: "orange, green",
+        accentColorUse: "use accent colors to distinguish derivative, integral, proof, quiz, and active-control states",
+        backgroundColors: "paper white, deep navy, pale grid blue",
+        background: "graph paper grid with fine millimeter lines",
+        backgroundUse: "support mathematical precision, alignment, and spatial reasoning without competing with plots",
+        typography: "editorial sans headings; serif prose; monospace numeric readouts",
+        layoutDensity: "workspace-like layout with toolbars, panels, and live preview",
+        vibe: "rigorous, beautiful, intuitive, exam-ready",
+        interactions: [
+          "A hero curve animates continuously while controls allow speed and pause adjustment.",
+          "Dragging points updates slopes, areas, equations, and labels live.",
+          "Proof steps reveal one line at a time with the current reasoning highlighted."
+        ]
+      },
+      playful: {
+        label: "糖果游戏",
+        hint: "明快、上手快、强反馈",
+        colorTheme: "candyArcade",
+        swatches: ["#58b9ff", "#ffd338", "#ff6f7c", "#5cc46b"],
+        imagery: "chunky game art, clear icons, particles, readable HUD, simple shapes with strong silhouettes",
+        mediaStyle: "flat-shaded game art and motion-driven effects instead of photography",
+        composition: "centered play area with HUD around it and large, readable result states",
+        primaryColors: "sky blue, bright yellow, coral pink, grass green",
+        primaryColorUse: "use primary colors for level themes, playful panels, positive states, and recognizable game zones",
+        accentColors: "pure white, deep navy",
+        accentColorUse: "use accent colors for highlights, shadows, HUD contrast, selected states, and readable score feedback",
+        backgroundColors: "sky blue, soft mint, pale yellow, clean white",
+        background: "flat color or gentle gradient that does not compete with gameplay",
+        backgroundUse: "keep the play area visually cheerful while making the active board and HUD remain dominant",
+        typography: "rounded display headings; highly legible sans labels and big numbers",
+        layoutDensity: "balanced editorial rhythm with strong visual anchors",
+        vibe: "cheerful, energetic, forgiving, instantly playable",
+        interactions: [
+          "Correct actions trigger chime, pop motion, and float-fade score labels.",
+          "Misses shake quickly, recover, and clearly show what changed.",
+          "Completion shows star rating, confetti, score breakdown, and replay."
+        ]
+      },
+      premium3d: {
+        label: "未来 3D",
+        hint: "材质、霓虹、展示台",
+        colorTheme: "carbonNeon",
+        swatches: ["#0a0a0c", "#111827", "#00f0ff", "#a7f542"],
+        imagery: "matte black bases, glass frames, hologram objects, polished concrete floors, neon edge lights",
+        mediaStyle: "physically based 3D rendering with reflective surfaces and realistic lighting falloff",
+        composition: "dominant centered object, low-angle premium product view, uncluttered inspection controls",
+        primaryColors: "matte black, charcoal, smoky glass",
+        primaryColorUse: "use primary colors for the stage, inspection panels, model base, and premium product surfaces",
+        accentColors: "cyan, lime, cool silver",
+        accentColorUse: "use accent colors for neon edges, hover glow, selected variants, and hologram feedback",
+        backgroundColors: "matte black, deep charcoal, smoky transparent glass tones",
+        background: "dark reflective floor with subtle environmental reflections",
+        backgroundUse: "create depth, reflections, and premium material presence while keeping controls legible",
+        typography: "geometric sans headings; compact technical UI labels",
+        layoutDensity: "workspace-like layout with toolbars, panels, and live preview",
+        vibe: "sleek, futuristic, tactile, premium, immersive",
+        interactions: [
+          "Object rotates slowly in idle state and brightens along neon edges on hover.",
+          "Clicking variants swaps models or materials with a short construction animation.",
+          "Camera auto-orbits but yields immediately to drag, pinch, and keyboard controls."
+        ]
+      },
+      traditional: {
+        label: "传统棋院",
+        hint: "木纹、纸感、AI 辅助",
+        colorTheme: "goInstitute",
+        swatches: ["#d6a24b", "#1b1b1b", "#f8f0dc", "#8c1d18"],
+        imagery: "wood grain boards, polished stones, rice-paper texture, annotated moves, quiet analysis panels",
+        mediaStyle: "realistic material rendering with soft shadows and traditional craft detail",
+        composition: "main board as the visual center, side analysis panel, compact move history",
+        primaryColors: "board yellow, black stones, white stones",
+        primaryColorUse: "use primary colors for the board, stones, core gameplay surface, and traditional visual identity",
+        accentColors: "red, muted ink blue",
+        accentColorUse: "use accent colors for AI review marks, territory analysis, last-move emphasis, and compact status signals",
+        backgroundColors: "rice paper white, warm board yellow, muted ink wash",
+        background: "subtle light rice-paper texture",
+        backgroundUse: "frame the game with a quiet traditional surface that does not distract from the board state",
+        typography: "refined serif headings; clear utility sans for game controls",
+        layoutDensity: "workspace-like layout with toolbars, panels, and live preview",
+        vibe: "traditional, intelligent, focused, respectful, modern",
+        interactions: [
+          "Legal positions show a translucent preview marker on hover.",
+          "Placed pieces drop with a slight bounce and soft material shadow.",
+          "Post-game review uses a scrubber and annotated key moments that snap into focus."
+        ]
+      }
+    };
+
+    const colorThemes = {
+      custom: {
+        label: "自定义",
+        note: "保留当前手动填写的颜色，不自动覆盖",
+        swatches: ["#ffffff", "#d9ded6", "#0f766e", "#315f8f"]
+      },
+      inkPaperRed: {
+        label: "墨白印刷红",
+        note: "适合作品集、品牌官网和内容站，层级清楚且有编辑感",
+        swatches: ["#111111", "#f5f2ea", "#c7362f", "#2f5f8f"],
+        primaryColors: "near-black, warm paper white",
+        primaryColorUse: "use primary colors for type-heavy spreads, editorial section backgrounds, and image framing",
+        accentColors: "printer red, archive blue",
+        accentColorUse: "use accent colors for annotations, project metadata, links, and controlled editorial emphasis",
+        backgroundColors: "warm paper white, soft gray, near-black for contrast blocks",
+        backgroundUse: "reinforce a print-monograph feeling while keeping images and typography crisp"
+      },
+      graphiteOrange: {
+        label: "石墨黑橙",
+        note: "适合高强度品牌、性能产品和运动类页面，冲击力强",
+        swatches: ["#050506", "#2d2d30", "#ff6a1a", "#d7d7d7"],
+        primaryColors: "pure black, dark gray",
+        primaryColorUse: "use primary colors for the main background, large panels, navigation, and high-contrast content areas",
+        accentColors: "neon orange, metallic silver",
+        accentColorUse: "use accent colors for primary CTAs, performance metrics, active states, and short feedback flashes",
+        backgroundColors: "near-black, charcoal, deep graphite",
+        backgroundUse: "support a strong, intense atmosphere while preserving clear text contrast and content hierarchy"
+      },
+      cinemaRedBlue: {
+        label: "红黑电影蓝",
+        note: "适合视频内容、评测站和创作者主页，强对比、有观点",
+        swatches: ["#050505", "#e21b2d", "#ffffff", "#1d8cff"],
+        primaryColors: "deep black, signal red, pure white",
+        primaryColorUse: "use primary colors for the cinematic shell, video blocks, headlines, and strong section contrast",
+        accentColors: "neon yellow, electric blue",
+        accentColorUse: "use accent colors for category chips, hover states, active filters, and price or recommendation signals",
+        backgroundColors: "pure black, deep red-black, white contrast surfaces",
+        backgroundUse: "make video thumbnails and creator imagery feel cinematic without burying readable text"
+      },
+      terminalGreenAmber: {
+        label: "终端绿琥珀",
+        note: "适合开发者博客、CLI 站点和代码工具，复古但可操作",
+        swatches: ["#080d0b", "#79ff9d", "#d9ffe2", "#d99a2b"],
+        primaryColors: "near-black, phosphor green",
+        primaryColorUse: "use primary colors for terminal surfaces, prompt text, command output, and active cursor states",
+        accentColors: "muted amber, dim gray",
+        accentColorUse: "use accent colors for warnings, command hints, ghost completions, and secondary metadata",
+        backgroundColors: "black-green, deep terminal black, dark olive",
+        backgroundUse: "suggest a terminal display texture while keeping commands and output easy to read"
+      },
+      navyProof: {
+        label: "海军蓝证明绿",
+        note: "适合数学、数据和教育可视化，严谨且容易区分状态",
+        swatches: ["#15233c", "#fff9ec", "#f2762e", "#2f9f67"],
+        primaryColors: "navy, paper white",
+        primaryColorUse: "use primary colors for graph surfaces, explanation panels, axes, and long-form reading areas",
+        accentColors: "orange, green",
+        accentColorUse: "use accent colors to distinguish derivative, integral, proof, quiz, and active-control states",
+        backgroundColors: "paper white, deep navy, pale grid blue",
+        backgroundUse: "support mathematical precision, alignment, and spatial reasoning without competing with plots"
+      },
+      sageClay: {
+        label: "鼠尾草陶土",
+        note: "适合瑜伽、生活方式、手作和轻服务页面，温和可信",
+        swatches: ["#f6f4ee", "#8aa084", "#bd7359", "#343a36"],
+        primaryColors: "soft off-white, sage green, warm gray",
+        primaryColorUse: "use primary colors for calm page surfaces, section bands, and quiet content containers",
+        accentColors: "terracotta, dusk pink",
+        accentColorUse: "use accent colors sparingly for booking CTAs, selected states, small marks, and warm moments of emphasis",
+        backgroundColors: "off-white, pale sage, warm mist",
+        backgroundUse: "create a grounded tactile surface that feels warm without lowering readability"
+      },
+      oceanMint: {
+        label: "海雾薄荷",
+        note: "适合 SaaS、工具和健康类产品，清爽、现代、低压力",
+        swatches: ["#f4fbf9", "#0f766e", "#4fb3a4", "#234e70"],
+        primaryColors: "mist white, deep teal, slate blue",
+        primaryColorUse: "use primary colors for clean app surfaces, navigation, data panels, and trustworthy brand anchors",
+        accentColors: "mint green, clear cyan, soft blue",
+        accentColorUse: "use accent colors for active controls, success states, subtle charts, and primary actions",
+        backgroundColors: "mist white, pale aqua, clean white",
+        backgroundUse: "keep the workspace airy and readable while giving interactive areas a fresh technical feel"
+      },
+      slateCopper: {
+        label: "板岩铜绿",
+        note: "适合 B2B、咨询、空间规划和高信任业务，稳重但不沉闷",
+        swatches: ["#263238", "#eef2ef", "#b87333", "#2f7d6b"],
+        primaryColors: "slate charcoal, cool white, deep green",
+        primaryColorUse: "use primary colors for business dashboards, section frames, navigation, and calm information density",
+        accentColors: "copper, muted teal",
+        accentColorUse: "use accent colors for key metrics, CTAs, selected states, and decision points",
+        backgroundColors: "cool white, pale stone, charcoal contrast zones",
+        backgroundUse: "support a professional workspace feeling with enough contrast for repeated use"
+      },
+      cobaltLemon: {
+        label: "钴蓝柠檬",
+        note: "适合教育、创作者和产品发布，明快且有记忆点",
+        swatches: ["#143d8f", "#f7fbff", "#ffe45c", "#f45b69"],
+        primaryColors: "cobalt blue, clean white",
+        primaryColorUse: "use primary colors for confident headers, navigation, lesson surfaces, and stable content areas",
+        accentColors: "lemon yellow, coral red",
+        accentColorUse: "use accent colors for highlights, progress, quiz feedback, and primary CTAs",
+        backgroundColors: "clean white, pale blue, soft cream highlights",
+        backgroundUse: "make learning and exploration feel bright while keeping long text comfortable"
+      },
+      plumMoss: {
+        label: "莓紫苔绿",
+        note: "适合艺术、香氛、精品零售和情绪化品牌，精致但不过甜",
+        swatches: ["#3f263d", "#f7f3f0", "#7b9b6f", "#c98986"],
+        primaryColors: "deep plum, soft porcelain, moss green",
+        primaryColorUse: "use primary colors for refined brand blocks, product storytelling, and quiet editorial surfaces",
+        accentColors: "dusty rose, muted brass",
+        accentColorUse: "use accent colors for product highlights, small CTAs, hover states, and sensory details",
+        backgroundColors: "porcelain white, pale rose gray, deep plum contrast",
+        backgroundUse: "create a refined emotional atmosphere without reducing product clarity"
+      },
+      ivoryIndigo: {
+        label: "象牙靛蓝",
+        note: "适合知识产品、课程和专业博客，阅读友好且可信",
+        swatches: ["#fbfaf4", "#253a73", "#d49a3a", "#5f7f95"],
+        primaryColors: "ivory white, indigo blue",
+        primaryColorUse: "use primary colors for article surfaces, navigation, chapter headers, and structured learning areas",
+        accentColors: "muted gold, steel blue",
+        accentColorUse: "use accent colors for progress, callouts, inline links, and important definitions",
+        backgroundColors: "ivory white, pale blue gray, ink-blue contrast blocks",
+        backgroundUse: "support long reading sessions with calm contrast and clear educational hierarchy"
+      },
+      candyArcade: {
+        label: "糖果街机",
+        note: "适合小游戏、儿童教育和轻量活动页，反馈感强",
+        swatches: ["#58b9ff", "#ffd338", "#ff6f7c", "#5cc46b"],
+        primaryColors: "sky blue, bright yellow, coral pink, grass green",
+        primaryColorUse: "use primary colors for level themes, playful panels, positive states, and recognizable game zones",
+        accentColors: "pure white, deep navy",
+        accentColorUse: "use accent colors for highlights, shadows, HUD contrast, selected states, and readable score feedback",
+        backgroundColors: "sky blue, soft mint, pale yellow, clean white",
+        backgroundUse: "keep the play area visually cheerful while making the active board and HUD remain dominant"
+      },
+      carbonNeon: {
+        label: "碳黑霓虹",
+        note: "适合 3D、科技展示和高端硬件，材质感强",
+        swatches: ["#0a0a0c", "#111827", "#00f0ff", "#a7f542"],
+        primaryColors: "matte black, charcoal, smoky glass",
+        primaryColorUse: "use primary colors for the stage, inspection panels, model base, and premium product surfaces",
+        accentColors: "cyan, lime, cool silver",
+        accentColorUse: "use accent colors for neon edges, hover glow, selected variants, and hologram feedback",
+        backgroundColors: "matte black, deep charcoal, smoky transparent glass tones",
+        backgroundUse: "create depth, reflections, and premium material presence while keeping controls legible"
+      },
+      goInstitute: {
+        label: "棋院纸木",
+        note: "适合围棋、传统文化和安静工具，沉稳有秩序",
+        swatches: ["#d6a24b", "#1b1b1b", "#f8f0dc", "#8c1d18"],
+        primaryColors: "board yellow, black stones, white stones",
+        primaryColorUse: "use primary colors for the board, stones, core gameplay surface, and traditional visual identity",
+        accentColors: "red, muted ink blue",
+        accentColorUse: "use accent colors for AI review marks, territory analysis, last-move emphasis, and compact status signals",
+        backgroundColors: "rice paper white, warm board yellow, muted ink wash",
+        backgroundUse: "frame the game with a quiet traditional surface that does not distract from the board state"
+      },
+      glacierGraphite: {
+        label: "冰川石墨",
+        note: "适合 AI 工具、数据产品和开发者页面，清冷、精确、耐看",
+        swatches: ["#f5f8fb", "#1f2937", "#48bfe3", "#9ca3af"],
+        primaryColors: "glacier white, graphite gray, cool blue-gray",
+        primaryColorUse: "use primary colors for tool surfaces, code-adjacent panels, navigation, and quiet data density",
+        accentColors: "ice cyan, signal blue",
+        accentColorUse: "use accent colors for active controls, generated output, validation, and focused selections",
+        backgroundColors: "glacier white, pale gray-blue, graphite contrast areas",
+        backgroundUse: "make the page feel precise and technical while keeping long sessions comfortable"
+      },
+      oliveSignal: {
+        label: "橄榄信号绿",
+        note: "适合户外、硬件、地图和效率工具，耐用、实用、识别强",
+        swatches: ["#2f3a2f", "#f2f5ef", "#8fb339", "#e09f3e"],
+        primaryColors: "deep olive, field white, muted green",
+        primaryColorUse: "use primary colors for grounded layouts, map-like surfaces, panels, and durable navigation",
+        accentColors: "signal lime, amber",
+        accentColorUse: "use accent colors for alerts, paths, active states, and operational CTAs",
+        backgroundColors: "field white, pale olive, dark utility contrast",
+        backgroundUse: "support practical scanning and repeated actions without feeling sterile"
+      },
+      coralInk: {
+        label: "珊瑚墨蓝",
+        note: "适合个人品牌、订阅页和轻商务产品，亲和但有重点",
+        swatches: ["#172a3a", "#ffffff", "#f26d5b", "#2bb3a3"],
+        primaryColors: "ink blue, clean white",
+        primaryColorUse: "use primary colors for trustworthy page shells, article surfaces, and calm navigation",
+        accentColors: "coral, teal",
+        accentColorUse: "use accent colors for CTAs, newsletter capture, selected states, and small conversion moments",
+        backgroundColors: "clean white, pale blue, soft coral wash",
+        backgroundUse: "keep the interface friendly and readable while making conversion points easy to notice"
+      }
+    };
+
+    function styleOption(styleKey, field, label, note) {
+      return {
+        label,
+        note,
+        value: stylePacks[styleKey][field]
+      };
+    }
+
+    const visualOptions = {
+      imagery: [
+        styleOption("hardcore", "imagery", "真实行动特写", "适合健身、性能、专业服务，让画面更有力量和可信度"),
+        styleOption("calm", "imagery", "自然生活细节", "适合瑜伽、疗愈、生活方式，让体验更放松和亲近"),
+        styleOption("editorial", "imagery", "作品与印刷物料", "适合作品集和设计品牌，让案例有可检查的专业细节"),
+        styleOption("cinematic", "imagery", "视频与幕后画面", "适合创作者和媒体站，强化内容生产感和人物可信度"),
+        styleOption("terminal", "imagery", "命令行界面元素", "适合开发者博客和工具，让交互规则一眼可理解"),
+        styleOption("math", "imagery", "数学图形与公式", "适合教育可视化，让抽象概念变成可操作对象"),
+        styleOption("playful", "imagery", "块面游戏图形", "适合小游戏和轻量互动，提高可读性和即时反馈"),
+        styleOption("premium3d", "imagery", "3D 材质展示物", "适合定制器和产品展示，突出空间、反光和高级感"),
+        styleOption("traditional", "imagery", "木纹棋盘与分析标记", "适合围棋和传统题材，兼顾文化感与 AI 辅助")
+      ],
+      mediaStyle: [
+        styleOption("hardcore", "mediaStyle", "高反差黑白摄影", "适合塑造力量、专业和高强度氛围"),
+        styleOption("calm", "mediaStyle", "暖光浅景深摄影", "适合表达温柔、自然和恢复感"),
+        styleOption("editorial", "mediaStyle", "印刷画册式排版", "适合强调设计判断、作品系统和审美主张"),
+        styleOption("cinematic", "mediaStyle", "电影感高反差影像", "适合视频内容、评测和强观点表达"),
+        styleOption("terminal", "mediaStyle", "纯界面终端美学", "适合把整站变成可操作命令系统"),
+        styleOption("math", "mediaStyle", "纯数学插画", "适合公式、图表和可视化，不会被照片干扰"),
+        styleOption("playful", "mediaStyle", "扁平游戏美术", "适合快速理解规则和状态反馈"),
+        styleOption("premium3d", "mediaStyle", "物理材质 3D 渲染", "适合展示反射、玻璃、金属和空间深度"),
+        styleOption("traditional", "mediaStyle", "写实材质渲染", "适合木、纸、棋子等传统材料的真实质感")
+      ],
+      composition: [
+        styleOption("hardcore", "composition", "主体紧凑裁切", "适合制造张力，让人物、产品或动作占据视觉中心"),
+        styleOption("calm", "composition", "大留白单重点", "适合降低压力，让用户慢慢进入内容"),
+        styleOption("editorial", "composition", "网格画册跨页", "适合组织大量作品图和长标题，保持编辑感"),
+        styleOption("cinematic", "composition", "横向视频优先", "适合视频库和评测内容，首屏更像媒体封面"),
+        styleOption("terminal", "composition", "底部命令输入", "适合模拟 CLI，用户能直接理解如何导航"),
+        styleOption("math", "composition", "图形与读数并列", "适合概念解释，让变化与公式同步出现"),
+        styleOption("playful", "composition", "居中游戏画布", "适合玩法聚焦，HUD 和结果状态更清楚"),
+        styleOption("premium3d", "composition", "中心 3D 展台", "适合检查模型和材质，让主体更高级"),
+        styleOption("traditional", "composition", "棋盘中心 + 侧栏", "适合实战、AI 分析和历史步骤同时查看")
+      ],
+      background: [
+        styleOption("hardcore", "background", "深色颗粒质感", "适合强化冲击力，同时衬托高对比内容"),
+        styleOption("calm", "background", "纸张或亚麻纹理", "适合增加触感，让页面更温和"),
+        styleOption("editorial", "background", "纸纹和套印痕迹", "适合增强印刷画册感"),
+        styleOption("cinematic", "background", "纯黑电影颗粒", "适合让视频缩略图和白字更突出"),
+        styleOption("terminal", "background", "CRT 扫描线", "适合营造终端屏幕感"),
+        styleOption("math", "background", "毫米网格纸", "适合辅助对齐、坐标和数学阅读"),
+        styleOption("playful", "background", "轻量纯色或渐变", "适合不抢游戏主画面"),
+        styleOption("premium3d", "background", "深色反射地面", "适合突出 3D 空间和材质"),
+        styleOption("traditional", "background", "浅色宣纸纹理", "适合安静承托棋盘和分析面板")
+      ],
+      typography: [
+        styleOption("hardcore", "typography", "粗窄无衬线", "适合力量感标题和高密度信息"),
+        styleOption("calm", "typography", "人文衬线 + 疏朗正文", "适合安静、亲和和长阅读"),
+        styleOption("editorial", "typography", "超大标题 + 编辑正文", "适合画册、作品集和强审美表达"),
+        styleOption("cinematic", "typography", "重型展示字 + 简洁正文", "适合视频封面感和强观点标题"),
+        styleOption("terminal", "typography", "全站等宽字体", "适合命令行体验和代码内容"),
+        styleOption("math", "typography", "标题无衬线 + 正文衬线 + 数字等宽", "适合公式解释、读数和证明"),
+        styleOption("playful", "typography", "圆润标题 + 大号数字", "适合游戏 HUD 和快速读数"),
+        styleOption("premium3d", "typography", "几何无衬线 + 紧凑标签", "适合科技产品和 3D 控制面板"),
+        styleOption("traditional", "typography", "精致衬线 + 清晰工具字", "适合传统题材和现代操作面板")
+      ]
+    };
+
+    const sectionDisplayByPrefix = {
+      "Hero Section": ["首屏区", "第一眼说明主体、态度和主要行动，决定用户是否继续看"],
+      "Value Proposition": ["价值主张", "把卖点变成可相信的理由，避免只有口号"],
+      "Product / Service System": ["产品 / 服务体系", "按用户目标组织内容，让用户更快找到适合自己的路径"],
+      "Proof": ["可信证明", "用案例、数据或认证建立信任，提升转化把握"],
+      "Team / Craft": ["团队 / 工艺", "展示人、流程或材料，让品牌更真实"],
+      "Conversion": ["转化入口", "提供预约、咨询、购买或订阅动作，让页面有结果"],
+      "Content Library": ["内容库", "让文章按主题、形式和难度可筛选，提升查找效率"],
+      "Series Page": ["系列页", "帮助用户理解学习路径、进度和下一步"],
+      "Article Page": ["文章页", "保证长文阅读、目录和嵌入内容的体验"],
+      "Discussion / Notes": ["讨论 / 笔记", "给内容加上交流和补充信息，提升留存"],
+      "Newsletter": ["订阅区", "把读者转成长期关系，而不是一次浏览"],
+      "Start Screen": ["开始页", "说明规则和模式，让用户低成本开始"],
+      "Level Select": ["关卡选择", "展示进度和推荐下一关，形成继续玩的动机"],
+      "Game Board": ["游戏主区域", "承载核心操作，稳定尺寸能减少误触和布局跳动"],
+      "HUD": ["状态面板", "集中显示分数、时间、生命等关键状态"],
+      "Feedback Layer": ["反馈层", "区分命中、失败、胜利等状态，让玩法更清楚"],
+      "Results Screen": ["结算页", "展示成绩和下一步，形成可重复游玩闭环"],
+      "Hero Scene": ["3D 首屏场景", "立即展示模型或空间，避免 3D 体验藏在后面"],
+      "Camera Controls": ["相机控制", "让用户能旋转、缩放、复位并检查重点"],
+      "Customizer Panel": ["定制面板", "集中管理材质、颜色、变体和预设"],
+      "Detail Inspection": ["细节检查", "通过热点和标签解释模型的关键部位"],
+      "Comparison / Estimate": ["对比 / 估算", "实时展示价格、容量、尺寸或配置结果"],
+      "Export / Share": ["导出 / 分享", "让配置结果可以保存、交付或传播"],
+      "Concept Map": ["概念地图", "展示前置知识和关系，降低学习断层"],
+      "Interactive Lab": ["互动实验区", "用滑杆、拖拽和实时读数解释抽象概念"],
+      "Guided Explanation": ["分步讲解", "把推导拆开显示，减少一次性信息压力"],
+      "Practice": ["练习区", "通过提示和反馈帮助用户确认是否学会"],
+      "Reference": ["参考资料", "提供公式、定义或下载，方便复习"],
+      "Selected Projects": ["精选项目", "展示角色、背景、限制和成果，证明能力"],
+      "Process": ["过程展示", "说明决策和迭代，让作品不只是好看"],
+      "Archive": ["项目档案", "让旧作品可检索，增加作品集厚度"],
+      "Talks / Writing": ["演讲 / 写作", "补充公开表达和专业影响力"],
+      "Contact": ["联系入口", "给合作或委托一个明确路径"],
+      "Hero Product View": ["首屏产品视图", "直接展示商品、价格和购买动作"],
+      "Variant Selector": ["变体选择", "让颜色、尺寸、材质变化可见且可比较"],
+      "Benefits": ["利益点", "把产品价值放到真实使用场景里"],
+      "Reviews": ["评价区", "用真实反馈、照片和标签增加购买信心"],
+      "Specifications": ["规格区", "解释尺寸、材料和兼容性，减少售前疑问"],
+      "Checkout Assist": ["购买辅助", "用粘性购买条、配送和退换信息降低决策阻力"],
+      "Workspace": ["工作区", "把核心输入和预览放在首屏，提高工具效率"],
+      "Mode Tabs": ["模式标签", "拆分不同工作流，让操作边界更清楚"],
+      "Control Panel": ["控制面板", "集中放置滑杆、开关和校验状态，便于调参"],
+      "Output Panel": ["输出面板", "展示结果、复制和导出动作，让工具有产出"],
+      "History / Presets": ["历史 / 预设", "方便复用、回退和快速开始"],
+      "Help Drawer": ["帮助抽屉", "在控件旁提供必要解释，降低学习成本"]
+    };
+
+    const interactionDisplayRules = [
+      ["Hero media responds", "首屏媒体滚动反馈", "让首屏更有层次，同时保持主要 CTA 可见"],
+      ["Section reveals use", "区块入场动效", "让内容出现更有节奏，避免页面显得生硬"],
+      ["Proof cards expand", "证明卡展开", "把证据藏在可探索层级里，提升可信度"],
+      ["CTA becomes", "粘性行动条", "用户滚动后仍能随时完成主要行动"],
+      ["Brand accent color", "品牌色滚动过渡", "在分区处加强品牌识别但不过度抢眼"],
+      ["Sticky table of contents", "粘性目录高亮", "帮助长文阅读时定位当前位置"],
+      ["Reading progress", "阅读进度条", "让用户知道内容长度和完成度"],
+      ["Code blocks include", "代码复制反馈", "提升教程可操作性，减少复制失败的不确定感"],
+      ["Filters rearrange", "筛选重排", "让内容变化可感知，用户知道筛选已生效"],
+      ["Series checklist", "系列进度自动勾选", "把阅读进度转成继续学习的动力"],
+      ["Core actions respond", "核心操作即时反馈", "让玩家或用户知道每次操作已经生效"],
+      ["Correct moves trigger", "正确操作奖励", "用声音、动效或粒子增强正反馈"],
+      ["Streaks escalate", "连击反馈升级", "鼓励连续表现，但不阻塞核心玩法"],
+      ["Completion shows", "完成结算反馈", "让结果更有仪式感，并引导重玩或下一步"],
+      ["Reduced-motion mode", "降动效模式", "保留可用性，同时照顾对动效敏感的用户"],
+      ["Idle auto-orbit", "空闲自动环绕", "展示 3D 细节，又能在用户操作时让出控制权"],
+      ["Material and color changes", "材质颜色实时更新", "让定制结果立即可见，减少猜测"],
+      ["Hotspots glow", "热点悬停发光", "引导用户发现可检查的模型细节"],
+      ["Camera swings", "相机视角切换", "在总览和细节之间建立空间连续性"],
+      ["Export builds", "导出过程动画", "让导出结果可感知，减少等待感"],
+      ["Dragging visual handles", "拖拽实时读数", "把抽象变化同步到公式、标签和图表"],
+      ["Sliders animate", "滑杆数值联动", "让参数变化精确可见，适合教学和工具"],
+      ["Formula terms", "公式术语解释", "用户不用离开当前位置就能理解概念"],
+      ["Step-through solutions", "分步解答", "降低推导难度，并支持键盘连续学习"],
+      ["Quiz feedback", "测验反馈", "不只告诉对错，还给出解释和重试路径"],
+      ["Hero type animates", "首屏字体动效", "把作品集的身份感放到第一眼"],
+      ["Project spreads", "项目跨页切换", "模拟编辑画册节奏，让案例展示更完整"],
+      ["Image sets support", "图片组可拖拽对比", "让前后对比和过程图更容易检查"],
+      ["Color swatches", "色板可滑动浏览", "展示设计系统和配色逻辑"],
+      ["Cursor or hover", "光标 / 悬停细节", "把互动细节绑定到作品集气质"],
+      ["Variant changes", "变体即时切换", "让价格、库存和图片跟随选择同步变化"],
+      ["Product media supports", "产品媒体检查", "支持缩放、拖拽或 3D 查看，降低购买疑虑"],
+      ["Reviews filter", "评价筛选", "让用户按使用场景找到更相关的证据"],
+      ["Sticky purchase bar", "粘性购买条", "主购买区离开后仍保留转化入口"],
+      ["Add-to-cart", "加入购物车确认", "给出下一步选择，减少操作后不确定感"],
+      ["Inputs update", "输入实时预览", "让工具操作立刻产生结果，提高效率"],
+      ["Controls use stable", "控件尺寸稳定", "防止标签和悬停状态导致布局跳动"],
+      ["Copy, export, and reset", "复制导出反馈", "让关键操作有明确成功或确认提示"],
+      ["Mode switches", "模式切换保留状态", "减少用户在不同流程间来回丢数据"],
+      ["Error messages", "错误就近提示", "让用户知道哪里错、怎么改"],
+      ["Primary CTA pulses", "主按钮轻微脉冲", "提醒用户主要行动但不打扰阅读"],
+      ["Cards flip", "卡片翻转 / 展开", "把证书、规格或证据放进第二层信息"],
+      ["grain-texture parallax", "纹理视差", "增加质感和深度，但不抢正文"],
+      ["subtly expands", "呼吸式首屏", "适合安静主题，营造节奏感"],
+      ["Headlines fade", "标题柔和入场", "让内容进入更自然，减少突兀感"],
+      ["Ken Burns", "图片慢速推拉", "增加轻微生命感，适合摄影内容"],
+      ["Hero name treatment", "首屏名称动效", "强化品牌或个人识别"],
+      ["Specimen or media cards", "样张卡片可拖拽", "让作品或素材更像可检查对象"],
+      ["Media thumbnails", "缩略图悬停预览", "提高视频内容浏览效率"],
+      ["Category filters", "分类筛选动画", "让内容重排更可理解"],
+      ["Section breaks", "区块品牌色变化", "用颜色提示内容阶段变化"],
+      ["Visitors type commands", "命令输入导航", "让整站成为可操作 CLI，而不是普通页面伪装"],
+      ["Tab completion", "Tab 自动补全", "降低命令输入成本"],
+      ["Up and down arrows", "历史命令切换", "符合终端习惯，提升可操作性"],
+      ["hero curve animates", "曲线自动演示", "让数学概念首屏就动起来"],
+      ["Dragging points", "点位拖拽联动", "把斜率、面积和公式变化同步呈现"],
+      ["Proof steps reveal", "证明逐步揭示", "避免一次性展示过多推导"],
+      ["Correct actions", "正确动作奖励反馈", "让轻量游戏更有手感"],
+      ["Misses shake", "失败快速抖动", "明确指出错误，又不长时间打断"],
+      ["Object rotates", "3D 对象空闲旋转", "让材质和轮廓自动被看见"],
+      ["Clicking variants", "点击切换变体", "让模型或材质变化更清晰"],
+      ["Camera auto-orbits", "相机自动环绕", "展示 3D 效果并支持手动接管"],
+      ["Legal positions", "合法落点预览", "减少误操作，让棋盘交互更清楚"],
+      ["Placed pieces", "棋子落子反馈", "用轻微弹跳和阴影确认落子"],
+      ["Post-game review", "赛后复盘滑动", "让关键步骤可回看并聚焦分析"]
+    ];
+
+    const state = {
+      type: "brand",
+      style: "editorial",
+      manualOutputDirty: false,
+      pendingUndo: null,
+      manualLockNoticeShown: false
+    };
+
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+
+    const elements = {
+      typeGrid: $("#typeGrid"),
+      styleGrid: $("#styleGrid"),
+      sectionChecks: $("#sectionChecks"),
+      interactionChecks: $("#interactionChecks"),
+      output: $("#promptOutput"),
+      scoreText: $("#scoreText"),
+      scoreFill: $("#scoreFill"),
+      toast: $("#toast")
+    };
+
+    function init() {
+      renderTypeGrid();
+      renderStyleGrid();
+      renderVisualSelects();
+      renderColorThemeSelect();
+      applyTypeDefaults();
+      applyStyleDefaults();
+      bindEvents();
+      const restored = restoreDraft();
+      if (!restored || !state.manualOutputDirty) {
+        generatePrompt({ force: true });
+      } else {
+        updateScore();
+      }
+    }
+
+    function renderTypeGrid() {
+      elements.typeGrid.innerHTML = Object.entries(siteTypes).map(([key, type]) => `
+        <button class="choice ${key === state.type ? "active" : ""}" type="button" data-type="${key}" aria-pressed="${key === state.type}">
+          <strong>${type.label}</strong>
+          <span>${type.hint}（选择后自动匹配该类型的结构模块和交互重点）</span>
+        </button>
+      `).join("");
+    }
+
+    function renderStyleGrid() {
+      elements.styleGrid.innerHTML = Object.entries(stylePacks).map(([key, style]) => `
+        <button class="choice ${key === state.style ? "active" : ""}" type="button" data-style="${key}" aria-pressed="${key === state.style}">
+          <strong>${style.label}</strong>
+          <span>${style.hint}（选择后预填视觉策略、字体和动效；颜色用途会单独拆分）</span>
+          <span class="style-swatch" aria-hidden="true">${style.swatches.map(color => `<i style="background:${color}"></i>`).join("")}</span>
+        </button>
+      `).join("");
+    }
+
+    function renderVisualSelects() {
+      Object.entries(visualOptions).forEach(([id, options]) => {
+        const node = document.getElementById(id);
+        if (!node) return;
+        const current = node.value;
+        node.innerHTML = options.map(option => `
+          <option value="${escapeAttr(option.value)}">${escapeHtml(option.label)}（${escapeHtml(option.note)}）</option>
+        `).join("");
+        if (options.some(option => option.value === current)) node.value = current;
+      });
+    }
+
+    function renderColorThemeSelect() {
+      const node = document.getElementById("colorTheme");
+      if (!node) return;
+      const current = node.value || "custom";
+      node.innerHTML = Object.entries(colorThemes).map(([key, theme]) => `
+        <option value="${escapeAttr(key)}">${escapeHtml(theme.label)}（${escapeHtml(theme.note)}）</option>
+      `).join("");
+      node.value = colorThemes[current] ? current : "custom";
+    }
+
+    function renderChecks(container, items, checked = true) {
+      container.innerHTML = items.map((item, index) => `
+        <label class="check">
+          <input type="checkbox" value="${escapeAttr(getOptionValue(item))}" ${checked ? "checked" : ""} data-index="${index}" data-zh="${escapeAttr(formatZhDescription(item))}">
+          ${renderOptionDescription(item)}
+        </label>
+      `).join("");
+    }
+
+    function getOptionValue(item) {
+      return typeof item === "object" && item.value ? item.value : String(item);
+    }
+
+    function renderOptionDescription(item) {
+      const display = describeOption(item);
+      return `<span><strong>${escapeHtml(display.label)}</strong><em>（${escapeHtml(display.note)}）</em></span>`;
+    }
+
+    function formatZhDescription(item) {
+      const display = describeOption(item);
+      return `${display.label}（${display.note}）`;
+    }
+
+    function describeOption(item) {
+      if (typeof item === "object" && item.label && item.note) {
+        return { label: item.label, note: item.note };
+      }
+
+      const value = String(item);
+      const prefix = value.split(":")[0];
+      if (sectionDisplayByPrefix[prefix]) {
+        const [label, note] = sectionDisplayByPrefix[prefix];
+        return { label, note };
+      }
+
+      const interaction = interactionDisplayRules.find(([match]) => value.includes(match));
+      if (interaction) {
+        return { label: interaction[1], note: interaction[2] };
+      }
+
+      return {
+        label: "自定义条目",
+        note: "保留这条英文提示词用于生成结果，适合高级自定义"
+      };
+    }
+
+    function applyTypeDefaults() {
+      const type = siteTypes[state.type];
+      renderChecks(elements.sectionChecks, type.sections, true);
+      renderInteractionChecks();
+
+      const target = $("#implementationTarget");
+      if (state.type === "threeD") target.value = "a Three.js-powered interactive page with responsive controls";
+      else if (state.type === "game") target.value = "a playable browser game with clear states, scoring, and restart flow";
+      else if (state.type === "tool") target.value = "a single self-contained HTML file with embedded CSS and JavaScript";
+    }
+
+    function applyStyleDefaults() {
+      const style = stylePacks[state.style];
+      setValue("imagery", style.imagery);
+      setValue("mediaStyle", style.mediaStyle);
+      setValue("composition", style.composition);
+      setValue("colorTheme", style.colorTheme || "custom");
+      setValue("primaryColors", style.primaryColors);
+      setValue("primaryColorUse", style.primaryColorUse);
+      setValue("accentColors", style.accentColors);
+      setValue("accentColorUse", style.accentColorUse);
+      setValue("backgroundColors", style.backgroundColors);
+      setValue("background", style.background);
+      setValue("backgroundUse", style.backgroundUse);
+      setValue("typography", style.typography);
+      setValue("layoutDensity", style.layoutDensity);
+      setValue("vibe", style.vibe);
+      renderInteractionChecks();
+    }
+
+    function renderInteractionChecks() {
+      const type = siteTypes[state.type];
+      const style = stylePacks[state.style];
+      const all = dedupe([...type.interactions, ...style.interactions]);
+      renderChecks(elements.interactionChecks, all, true);
+    }
+
+    function bindEvents() {
+      elements.typeGrid.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-type]");
+        if (!button) return;
+        const undoDraft = createDraftData();
+        state.type = button.dataset.type;
+        renderTypeGrid();
+        applyTypeDefaults();
+        requestGenerate({ force: false });
+        offerUndo("已切换网页类型", undoDraft);
+      });
+
+      elements.styleGrid.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-style]");
+        if (!button) return;
+        const undoDraft = createDraftData();
+        state.style = button.dataset.style;
+        renderStyleGrid();
+        applyStyleDefaults();
+        requestGenerate({ force: false });
+        offerUndo("已应用风格方向", undoDraft);
+      });
+
+      $("#generateTop").addEventListener("click", () => requestGenerate({ force: true }));
+      $("#generateBottom").addEventListener("click", () => requestGenerate({ force: true }));
+      $("#copyTop").addEventListener("click", copyPrompt);
+      $("#copyBottom").addEventListener("click", copyPrompt);
+      $("#downloadPrompt").addEventListener("click", downloadPrompt);
+      $("#resetForm").addEventListener("click", resetForm);
+
+      $("#checkAllSections").addEventListener("click", () => setChecks(elements.sectionChecks, true));
+      $("#clearSections").addEventListener("click", () => setChecks(elements.sectionChecks, false));
+      $("#checkAllInteractions").addEventListener("click", () => setChecks(elements.interactionChecks, true));
+      $("#clearInteractions").addEventListener("click", () => setChecks(elements.interactionChecks, false));
+
+      $("#promptForm").addEventListener("input", (event) => {
+        if (["primaryColors", "primaryColorUse", "accentColors", "accentColorUse", "backgroundColors", "backgroundUse"].includes(event.target.id)) {
+          setValue("colorTheme", "custom");
+        }
+        requestGenerate({ force: false });
+      });
+
+      $("#promptForm").addEventListener("change", (event) => {
+        if (event.target.id === "colorTheme") {
+          applyColorTheme(event.target.value);
+        }
+        requestGenerate({ force: false });
+      });
+
+      elements.output.addEventListener("input", () => {
+        state.manualOutputDirty = true;
+        state.manualLockNoticeShown = false;
+        updateScore();
+        saveDraft();
+      });
+    }
+
+    function setChecks(container, checked) {
+      container.querySelectorAll("input[type='checkbox']").forEach(input => {
+        input.checked = checked;
+      });
+      requestGenerate({ force: false });
+    }
+
+    function setValue(id, value) {
+      const node = document.getElementById(id);
+      if (node) node.value = value;
+    }
+
+    function applyColorTheme(key) {
+      const theme = colorThemes[key];
+      if (!theme || key === "custom") return;
+      setValue("primaryColors", theme.primaryColors);
+      setValue("primaryColorUse", theme.primaryColorUse);
+      setValue("accentColors", theme.accentColors);
+      setValue("accentColorUse", theme.accentColorUse);
+      setValue("backgroundColors", theme.backgroundColors);
+      setValue("backgroundUse", theme.backgroundUse);
+    }
+
+    function setRestoredValue(node, value) {
+      if (node.tagName === "SELECT" && value && !Array.from(node.options).some(option => option.value === value)) {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = "旧草稿自定义（保留之前填写的内容，适合继续微调）";
+        node.appendChild(option);
+      }
+      node.value = value;
+    }
+
+    function getValue(id) {
+      return (document.getElementById(id)?.value || "").trim();
+    }
+
+    function getCheckedValues(container) {
+      return Array.from(container.querySelectorAll("input[type='checkbox']:checked")).map(input => input.value);
+    }
+
+    function getCheckedEntries(container) {
+      return Array.from(container.querySelectorAll("input[type='checkbox']:checked")).map(input => ({
+        value: input.value,
+        zh: input.dataset.zh || input.closest(".check")?.querySelector("span")?.textContent.trim() || input.value
+      }));
+    }
+
+    function getQualityValues() {
+      return $$("#qualityChecks input[type='checkbox']:checked").map(input => input.value);
+    }
+
+    function getQualityZhValues() {
+      return $$("#qualityChecks input[type='checkbox']:checked").map(input => (
+        input.closest(".check")?.querySelector("span")?.textContent.trim() || input.value
+      ));
+    }
+
+    function getSelectedText(id) {
+      const node = document.getElementById(id);
+      if (!node || node.selectedIndex < 0) return "";
+      return node.options[node.selectedIndex].textContent.trim();
+    }
+
+    function linesFrom(id) {
+      return getValue(id).split(/\n+/).map(line => line.trim()).filter(Boolean);
+    }
+
+    function requestGenerate(options = {}) {
+      const force = Boolean(options.force);
+      if (state.manualOutputDirty && !force) {
+        if (!state.manualLockNoticeShown) {
+          showToast("输出已手动编辑，点击重新生成才会覆盖");
+          state.manualLockNoticeShown = true;
+        }
+        saveDraft();
+        return;
+      }
+      generatePrompt({ force });
+    }
+
+    function generatePrompt() {
+      const language = getValue("outputLanguage") || "en";
+      const type = siteTypes[state.type];
+      const data = collectData();
+      let prompt;
+
+      if (language === "zh") {
+        prompt = buildChinesePrompt(type, data);
+      } else if (language === "both") {
+        prompt = buildEnglishPrompt(type, data) + "\n\n---\n\n中文版本：\n\n" + buildChinesePrompt(type, data);
+      } else {
+        prompt = buildEnglishPrompt(type, data);
+      }
+
+      elements.output.value = prompt;
+      state.manualOutputDirty = false;
+      state.manualLockNoticeShown = false;
+      updateScore();
+      saveDraft();
+    }
+
+    function collectData() {
+      const selectedSections = getCheckedEntries(elements.sectionChecks);
+      const selectedInteractions = getCheckedEntries(elements.interactionChecks);
+      const customSections = linesFrom("customSections");
+      const customInteractions = linesFrom("customInteractions");
+
+      return {
+        projectName: getValue("projectName") || "the project",
+        audience: getValue("audience") || "the intended audience",
+        mainGoal: getValue("mainGoal") || "make the core user action obvious and desirable",
+        contentFocus: getValue("contentFocus") || "the core content, product, or experience",
+        brandTwist: getValue("brandTwist"),
+        colorTheme: getValue("colorTheme"),
+        colorThemeZh: getSelectedText("colorTheme"),
+        imagery: getValue("imagery"),
+        imageryZh: getSelectedText("imagery"),
+        mediaStyle: getValue("mediaStyle"),
+        mediaStyleZh: getSelectedText("mediaStyle"),
+        composition: getValue("composition"),
+        compositionZh: getSelectedText("composition"),
+        primaryColors: getValue("primaryColors"),
+        primaryColorUse: getValue("primaryColorUse"),
+        accentColors: getValue("accentColors"),
+        accentColorUse: getValue("accentColorUse"),
+        backgroundColors: getValue("backgroundColors"),
+        background: getValue("background"),
+        backgroundZh: getSelectedText("background"),
+        backgroundUse: getValue("backgroundUse"),
+        typography: getValue("typography"),
+        typographyZh: getSelectedText("typography"),
+        layoutDensity: getValue("layoutDensity"),
+        layoutDensityZh: getSelectedText("layoutDensity"),
+        vibe: getValue("vibe"),
+        motionLevel: getValue("motionLevel"),
+        motionLevelZh: getSelectedText("motionLevel"),
+        implementationTarget: getValue("implementationTarget"),
+        implementationTargetZh: getSelectedText("implementationTarget"),
+        extraNotes: getValue("extraNotes"),
+        sections: [...selectedSections.map(item => item.value), ...customSections],
+        sectionsZh: [...selectedSections.map(item => item.zh), ...customSections],
+        interactions: [...selectedInteractions.map(item => item.value), ...customInteractions],
+        interactionsZh: [...selectedInteractions.map(item => item.zh), ...customInteractions],
+        quality: getQualityValues(),
+        qualityZh: getQualityZhValues()
+      };
+    }
+
+    function buildEnglishPrompt(type, data) {
+      const intro = `${type.verb} for ${data.projectName}, centered on ${data.contentFocus}. It should serve ${data.audience} and help them ${data.mainGoal}.`;
+      const twist = data.brandTwist ? `\n\nCore Concept:\n${data.brandTwist}` : "";
+
+      return `${intro}${twist}
+
+Visual Strategy:
+Imagery: ${data.imagery || "specific, domain-relevant visuals that reveal the actual subject rather than generic decoration"}.
+Photography / Illustration: ${data.mediaStyle || "a consistent media style matched to the product, topic, or gameplay"}.
+Composition: ${data.composition || "clear visual hierarchy with the main subject dominant in the first viewport"}.
+
+Color Palette:
+Primary Colors: ${data.primaryColors || "choose a restrained set of primary colors that fit the concept"}.
+Primary Color Usage: ${data.primaryColorUse || "use primary colors for the largest surfaces, navigation, and durable brand recognition"}.
+Accent Colors: ${data.accentColors || "choose a small set of accent colors for emphasis only"}.
+Accent Color Usage: ${data.accentColorUse || "use accent colors for CTA, active state, status, and feedback moments"}.
+Background Colors: ${data.backgroundColors || "choose background colors separately from texture and surface treatment"}.
+Background Surface: ${data.background || "a subtle background texture or surface that supports readability"}.
+Background Usage: ${data.backgroundUse || "make the background support readability, hierarchy, and atmosphere without competing with the subject"}.
+
+Typography:
+${data.typography || "Headings should carry the personality; body text should remain highly legible"}.
+Layout: ${data.layoutDensity || "balanced spacing with stable responsive constraints"}.
+
+${type.structureLabel}:
+${formatBullets(data.sections)}
+
+Interaction Details:
+Motion Direction: ${data.motionLevel || "polished, purposeful motion with clear user feedback"}.
+${formatBullets(data.interactions)}
+
+Implementation Requirements:
+- Build as ${data.implementationTarget || "a single self-contained HTML file with embedded CSS and JavaScript"}.
+${formatBullets(data.quality)}
+${data.extraNotes ? `- ${data.extraNotes}` : ""}
+
+Overall Vibe: ${data.vibe || "distinct, coherent, polished, and immediately usable"}.`;
+    }
+
+    function buildChinesePrompt(type, data) {
+      const intro = `${type.zhVerb}，项目是「${data.projectName}」，核心围绕「${data.contentFocus}」。目标用户是「${data.audience}」，页面要帮助他们「${data.mainGoal}」。`;
+      const twist = data.brandTwist ? `\n\n核心设定：\n${data.brandTwist}` : "";
+
+      return `${intro}${twist}
+
+视觉策略：
+视觉素材：${data.imageryZh || "使用贴合领域的具体视觉素材，不要抽象装饰"}。
+媒介风格：${data.mediaStyleZh || "媒体风格必须和产品、主题或玩法一致"}。
+构图方式：${data.compositionZh || "首屏主体明确，视觉层级清楚"}。
+
+配色：
+主色：${data.primaryColors || "选择符合概念的克制主色"}。
+主色用途：${data.primaryColorUse || "主色用于大面积界面、导航和稳定的品牌识别"}。
+强调色：${data.accentColors || "选择少量强调色"}。
+强调色用途：${data.accentColorUse || "强调色只用于 CTA、选中态、状态和反馈瞬间"}。
+背景颜色：${data.backgroundColors || "单独选择背景颜色，不和纹理混写"}。
+背景表面：${data.backgroundZh || "使用支持可读性的细腻背景或纹理"}。
+背景用途：${data.backgroundUse || "背景要服务可读性、层级和氛围，不与主体竞争"}。
+
+字体：
+${data.typographyZh || "标题负责表达性格，正文保持高可读性"}。
+布局：${data.layoutDensityZh || "节奏平衡，响应式尺寸稳定"}。
+
+${translateStructureLabel(type.structureLabel)}：
+${formatBullets(data.sectionsZh, "- 补充这个概念所需的关键页面、游戏或工具模块。")}
+
+交互细节：
+动效方向：${data.motionLevelZh || "有目的、有反馈、不过度"}。
+${formatBullets(data.interactionsZh, "- 补充这个概念所需的关键触发、动作和反馈。")}
+
+实现要求：
+- 交付为 ${data.implementationTargetZh || "单个自包含 HTML 文件，内嵌 CSS 和 JavaScript"}。
+${formatBullets(data.qualityZh, "- 补充可验证的完成质量要求。")}
+${data.extraNotes ? `- ${data.extraNotes}` : ""}
+
+整体气质：${data.vibe || "鲜明、统一、精致，并且首屏即可使用"}。`;
+    }
+
+    function translateStructureLabel(label) {
+      const map = {
+        "Page Structure": "页面结构",
+        "Game Structure": "游戏结构",
+        "3D Experience Structure": "3D 体验结构",
+        "Learning Structure": "学习结构",
+        "Portfolio Structure": "作品集结构",
+        "Commerce Structure": "电商结构",
+        "Tool Structure": "工具结构"
+      };
+      return map[label] || "结构";
+    }
+
+    function formatBullets(items, fallback = "- Add the essential sections or interactions needed for this concept.") {
+      const clean = dedupe(items.filter(Boolean));
+      if (!clean.length) return fallback;
+      return clean.map(item => `- ${item}`).join("\n");
+    }
+
+    function updateScore() {
+      const data = collectData();
+      const checks = [
+        data.projectName !== "the project",
+        data.audience !== "the intended audience",
+        data.mainGoal !== "make the core user action obvious and desirable",
+        data.contentFocus !== "the core content, product, or experience",
+        Boolean(data.brandTwist),
+        Boolean(data.imagery),
+        Boolean(data.mediaStyle),
+        Boolean(data.composition),
+        Boolean(data.primaryColors),
+        Boolean(data.primaryColorUse),
+        Boolean(data.accentColors),
+        Boolean(data.accentColorUse),
+        Boolean(data.backgroundColors),
+        Boolean(data.backgroundUse),
+        Boolean(data.typography),
+        data.sections.length >= 4,
+        data.interactions.length >= 5,
+        data.quality.length >= 3,
+        elements.output.value.length > 1200
+      ];
+      const score = Math.round((checks.filter(Boolean).length / checks.length) * 100);
+      elements.scoreText.textContent = `${score}%`;
+      elements.scoreFill.style.width = `${score}%`;
+    }
+
+    async function copyPrompt() {
+      const text = elements.output.value;
+      if (!text.trim()) return;
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (error) {
+        elements.output.select();
+        document.execCommand("copy");
+      }
+      showToast("Prompt 已复制");
+    }
+
+    function downloadPrompt() {
+      const text = elements.output.value;
+      const name = (getValue("projectName") || "gml-web-prompt")
+        .replace(/[\\/:*?"<>|]+/g, "-")
+        .replace(/\s+/g, "-")
+        .toLowerCase();
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${name}-prompt.txt`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      showToast("已生成下载文件");
+    }
+
+    function resetForm() {
+      const undoDraft = createDraftData();
+      localStorage.removeItem("gmlPromptGeneratorDraft");
+      state.type = "brand";
+      state.style = "editorial";
+      state.manualOutputDirty = false;
+      state.manualLockNoticeShown = false;
+      $("#promptForm").reset();
+      renderTypeGrid();
+      renderStyleGrid();
+      applyTypeDefaults();
+      applyStyleDefaults();
+      setValue("outputLanguage", "en");
+      generatePrompt({ force: true });
+      offerUndo("已重置", undoDraft);
+    }
+
+    function createDraftData() {
+      const formData = {};
+      new FormData($("#promptForm")).forEach((value, key) => {
+        if (formData[key]) {
+          formData[key] = Array.isArray(formData[key]) ? [...formData[key], value] : [formData[key], value];
+        } else {
+          formData[key] = value;
+        }
+      });
+      formData.type = state.type;
+      formData.style = state.style;
+      formData.promptOutput = elements.output.value;
+      formData.manualOutputDirty = state.manualOutputDirty;
+      formData.sectionValues = getCheckedValues(elements.sectionChecks);
+      formData.interactionValues = getCheckedValues(elements.interactionChecks);
+      formData.qualityValues = getQualityValues();
+      return formData;
+    }
+
+    function saveDraft() {
+      localStorage.setItem("gmlPromptGeneratorDraft", JSON.stringify(createDraftData()));
+    }
+
+    function restoreDraft() {
+      const raw = localStorage.getItem("gmlPromptGeneratorDraft");
+      if (!raw) return null;
+      try {
+        const draft = JSON.parse(raw);
+        restoreDraftObject(draft);
+        return draft;
+      } catch (error) {
+        localStorage.removeItem("gmlPromptGeneratorDraft");
+        return null;
+      }
+    }
+
+    function restoreDraftObject(draft) {
+      if (draft.type && siteTypes[draft.type]) state.type = draft.type;
+      if (draft.style && stylePacks[draft.style]) state.style = draft.style;
+      state.manualOutputDirty = Boolean(draft.manualOutputDirty);
+      state.manualLockNoticeShown = false;
+      renderTypeGrid();
+      renderStyleGrid();
+      renderVisualSelects();
+      renderColorThemeSelect();
+      applyTypeDefaults();
+      applyStyleDefaults();
+
+      Object.entries(draft).forEach(([key, value]) => {
+        const node = document.getElementById(key);
+        if (!node || Array.isArray(value)) return;
+        setRestoredValue(node, value);
+      });
+
+      restoreChecks(elements.sectionChecks, draft.sectionValues);
+      restoreChecks(elements.interactionChecks, draft.interactionValues);
+      restoreChecks($("#qualityChecks"), draft.qualityValues);
+      if (draft.promptOutput) elements.output.value = draft.promptOutput;
+      updateScore();
+      saveDraft();
+    }
+
+    function restoreChecks(container, values) {
+      if (!Array.isArray(values)) return;
+      const wanted = new Set(values);
+      container.querySelectorAll("input[type='checkbox']").forEach(input => {
+        input.checked = wanted.has(input.value);
+      });
+    }
+
+    function offerUndo(message, draft) {
+      state.pendingUndo = draft;
+      showToast(message, {
+        label: "撤销",
+        callback: () => {
+          if (!state.pendingUndo) return;
+          restoreDraftObject(state.pendingUndo);
+          state.pendingUndo = null;
+          showToast("已撤销");
+        }
+      });
+    }
+
+    function showToast(message, action = null) {
+      elements.toast.textContent = "";
+      const text = document.createElement("span");
+      text.textContent = message;
+      elements.toast.appendChild(text);
+      if (action) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = action.label;
+        button.addEventListener("click", action.callback, { once: true });
+        elements.toast.appendChild(button);
+      }
+      elements.toast.classList.add("show");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => {
+        elements.toast.classList.remove("show");
+      }, action ? 5000 : 1800);
+    }
+
+    function dedupe(items) {
+      return Array.from(new Set(items.map(item => String(item).trim()).filter(Boolean)));
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value).replaceAll('"', "&quot;");
+    }
+
+    init();
+  </script>
+</body>
+</html>
